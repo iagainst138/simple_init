@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"encoding/json"
+	"flag"
 	"io/ioutil"
 	"log"
 	"os"
@@ -75,15 +76,24 @@ func (p *Process) Run() {
 }
 
 func main() {
-	log.Println("main starting")
+	config := ""
+
+	flag.StringVar(&config, "config", config, "config file to use")
+	flag.Parse()
+
+	if config == "" {
+		log.Fatal("ERROR: no config file specified")
+	}
 
 	processes := []*Process{}
-	if _, err := os.Stat("run.json"); !os.IsNotExist(err) {
-		if data, err := ioutil.ReadFile("run.json"); err == nil {
+	if _, err := os.Stat(config); !os.IsNotExist(err) {
+		if data, err := ioutil.ReadFile(config); err == nil {
 			if err = json.Unmarshal(data, &processes); err != nil {
 				log.Fatal(err)
 			}
 		}
+	} else {
+		log.Fatal(err)
 	}
 
 	wg := sync.WaitGroup{}
@@ -96,5 +106,4 @@ func main() {
 	}
 
 	wg.Wait()
-	log.Println("main finishing")
 }

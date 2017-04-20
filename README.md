@@ -7,4 +7,4 @@ A really simple init for running muliple "services".
 
 
 ### Running
-```./init```
+```./init -config sample_configs/config.json```
