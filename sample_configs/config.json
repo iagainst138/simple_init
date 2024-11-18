@@ -12,6 +12,7 @@
     {
         "CmdPath": "sleep",
         "Args": ["30"],
-        "KeepAlive": true
+        "KeepAlive": true,
+        "RestartOnFailure": true
     }
 ]

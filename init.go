@@ -1,14 +1,10 @@
-package main
+package sinit
 
 import (
 	"bufio"
-	"encoding/json"
-	"flag"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
-	"sync"
 	"time"
 )
 
@@ -73,37 +69,4 @@ func (p *Process) Run() {
 		}
 	}
 	log.Printf("finished monitoring '%v'", p.CmdPath)
-}
-
-func main() {
-	config := ""
-
-	flag.StringVar(&config, "config", config, "config file to use")
-	flag.Parse()
-
-	if config == "" {
-		log.Fatal("ERROR: no config file specified")
-	}
-
-	processes := []*Process{}
-	if _, err := os.Stat(config); !os.IsNotExist(err) {
-		if data, err := ioutil.ReadFile(config); err == nil {
-			if err = json.Unmarshal(data, &processes); err != nil {
-				log.Fatal(err)
-			}
-		}
-	} else {
-		log.Fatal(err)
-	}
-
-	wg := sync.WaitGroup{}
-	for _, p := range processes {
-		wg.Add(1)
-		go func(x *Process) {
-			x.Run()
-			wg.Done()
-		}(p)
-	}
-
-	wg.Wait()
 }
