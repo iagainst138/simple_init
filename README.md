@@ -3,7 +3,7 @@ A really simple init for running muliple "services".
 
 
 ### Building
-```go build init.go```
+```make build```
 
 
 ### Running
