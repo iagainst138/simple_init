@@ -1,10 +1,9 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 	"sync"
 
@@ -12,26 +11,21 @@ import (
 )
 
 func main() {
-	config := ""
+	configPath := ""
 
-	flag.StringVar(&config, "config", config, "config file to use (required)")
+	flag.StringVar(&configPath, "config", configPath, "path to config file to use (required)")
 	flag.Parse()
 
-	if config == "" {
+	if configPath == "" {
 		fmt.Fprintln(os.Stderr, "ERROR: no config file specified.\nUsage:")
 		flag.PrintDefaults()
 		os.Exit(1)
 	}
 
-	processes := []*sinit.Process{}
-	if _, err := os.Stat(config); !os.IsNotExist(err) {
-		if data, err := os.ReadFile(config); err == nil {
-			if err = json.Unmarshal(data, &processes); err != nil {
-				log.Fatal(err)
-			}
-		}
-	} else {
-		log.Fatal(err)
+	processes, err := sinit.Load(configPath)
+	if err != nil {
+		slog.Error("failed to load config", "error", err)
+		os.Exit(1)
 	}
 
 	wg := sync.WaitGroup{}
