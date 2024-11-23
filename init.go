@@ -3,10 +3,13 @@ package sinit
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"fmt"
 	"log"
 	"os"
 	"os/exec"
+	"runtime"
+	"syscall"
 	"time"
 )
 
@@ -25,7 +28,7 @@ func (t Task) command() string {
 	return fmt.Sprintf("%s %v", t.CmdPath, t.Args)
 }
 
-func (t *Task) Run(logInRealtime bool) error {
+func (t *Task) Run(ctx context.Context, logInRealtime bool) error {
 	var out bytes.Buffer
 	var ok bool
 
@@ -43,9 +46,26 @@ func (t *Task) Run(logInRealtime bool) error {
 	run := true
 	for run {
 		time.Sleep(time.Duration(t.DelayStart) * time.Second)
-		cmd := exec.Command(t.CmdPath, t.Args...)
+
+		cmd := exec.CommandContext(ctx, t.CmdPath, t.Args...)
+
 		if t.WorkingDir != "" {
 			cmd.Dir = t.WorkingDir
+		}
+
+		if runtime.GOOS != "windows" {
+			cmd.SysProcAttr = &syscall.SysProcAttr{
+				Setpgid: true,
+			}
+		}
+
+		cmd.Cancel = func() error {
+			// TODO send custom signal
+			log.Println("____ TODO ____ use custom signal")
+			if cmd.Process != nil {
+				return cmd.Process.Kill()
+			}
+			return nil
 		}
 
 		r, w, err := os.Pipe()
