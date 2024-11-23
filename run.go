@@ -11,16 +11,16 @@ func Run(configPath string) error {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
 
-	for _, process := range config.Pre {
-		if err := process.Run(false); err != nil {
+	for _, task := range config.Pre {
+		if err := task.Run(false); err != nil {
 			return fmt.Errorf("pre task failed: %w", err)
 		}
 	}
 
 	var wg sync.WaitGroup
-	for _, process := range config.Services {
+	for _, task := range config.Services {
 		wg.Add(1)
-		go func(p *Process) { p.Run(true); wg.Done() }(process)
+		go func(t *Task) { t.Run(true); wg.Done() }(task)
 	}
 
 	wg.Wait()

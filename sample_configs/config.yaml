@@ -1,8 +1,8 @@
 pre:
-  - name: "failing ls"
+  - name: "ls pre-task"
     cmd_path: "ls"
     args:
-      - /kkkkk
+      - /
 
 
 services:
@@ -12,7 +12,9 @@ services:
 
   - name: "echo"
     cmd_path: "echo"
-    args: ["Hello,", "world!"]
+    args:
+      - Hello
+      - world!
 
   - name: "sleep 2"
     cmd_path: "sleep"

@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-type Process struct {
+type Task struct {
 	Name             string   `yaml:"name"`
 	CmdPath          string   `yaml:"cmd_path"`
 	Args             []string `yaml:"args"`
@@ -21,31 +21,31 @@ type Process struct {
 	DelayStart       int      `yaml:"delay_start"`
 }
 
-func (p Process) command() string {
-	return fmt.Sprintf("%s %v", p.CmdPath, p.Args)
+func (t Task) command() string {
+	return fmt.Sprintf("%s %v", t.CmdPath, t.Args)
 }
 
-func (p *Process) Run(logInRealtime bool) error {
+func (t *Task) Run(logInRealtime bool) error {
 	var out bytes.Buffer
 	var ok bool
 
 	if !logInRealtime {
 		defer func() {
 			if !ok {
-				log.Printf("pre task %q failed:", p.Name)
+				log.Printf("pre task %q failed:", t.Name)
 				fmt.Println(out.String())
 			}
 		}()
 	}
 
-	log.Printf("starting monitoring %q - %s", p.Name, p.command())
+	log.Printf("starting monitoring %q - %s", t.Name, t.command())
 
 	run := true
 	for run {
-		time.Sleep(time.Duration(p.DelayStart) * time.Second)
-		cmd := exec.Command(p.CmdPath, p.Args...)
-		if p.WorkingDir != "" {
-			cmd.Dir = p.WorkingDir
+		time.Sleep(time.Duration(t.DelayStart) * time.Second)
+		cmd := exec.Command(t.CmdPath, t.Args...)
+		if t.WorkingDir != "" {
+			cmd.Dir = t.WorkingDir
 		}
 
 		r, w, err := os.Pipe()
@@ -60,7 +60,7 @@ func (p *Process) Run(logInRealtime bool) error {
 		go func() {
 			s := bufio.NewScanner(r)
 			for s.Scan() {
-				line := fmt.Sprintf("[%v] %v", p.CmdPath, s.Text())
+				line := fmt.Sprintf("[%v] %v", t.CmdPath, s.Text())
 				if logInRealtime {
 					log.Println(line)
 				} else {
@@ -69,29 +69,29 @@ func (p *Process) Run(logInRealtime bool) error {
 			}
 		}()
 
-		log.Printf("starting %q - %s", p.Name, p.command())
+		log.Printf("starting %q - %s", t.Name, t.command())
 		if err = cmd.Start(); err != nil {
-			return fmt.Errorf("[%v]: %w", p.CmdPath, err)
+			return fmt.Errorf("[%v]: %w", t.CmdPath, err)
 		}
 
 		err = cmd.Wait()
 		r.Close()
 		w.Close()
 		if err != nil {
-			log.Printf("process %q finished with error: %v", p.Name, err)
-			if !p.RestartOnFailure {
+			log.Printf("task %q finished with error: %v", t.Name, err)
+			if !t.RestartOnFailure {
 				return err
 			}
 		} else {
-			log.Printf("process %q finished cleanly", p.Name)
+			log.Printf("task %q finished cleanly", t.Name)
 		}
 
-		run = p.Keepalive
+		run = t.Keepalive
 		if run {
-			time.Sleep(time.Duration(p.RestartWait) * time.Second)
+			time.Sleep(time.Duration(t.RestartWait) * time.Second)
 		}
 	}
-	log.Printf("finished monitoring %q", p.Name)
+	log.Printf("finished monitoring %q", t.Name)
 
 	ok = true
 

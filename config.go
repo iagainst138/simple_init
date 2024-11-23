@@ -6,11 +6,11 @@ import (
 	"github.com/goccy/go-yaml"
 )
 
-type Processes []*Process
+type Tasks []*Task
 
 type Config struct {
-	Pre      Processes `yaml:"pre"`
-	Services Processes `yaml:"services"`
+	Pre      Tasks `yaml:"pre"`
+	Services Tasks `yaml:"services"`
 }
 
 func Load(path string) (Config, error) {
