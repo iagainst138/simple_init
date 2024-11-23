@@ -9,13 +9,13 @@ import (
 )
 
 type Process struct {
-	CmdPath          string
-	Args             []string
-	RestartOnFailure bool
-	KeepAlive        bool
-	RestartWait      int
-	WorkingDir       string
-	DelayStart       int
+	CmdPath          string   `yaml:"CmdPath"`
+	Args             []string `yaml:"Args"`
+	RestartOnFailure bool     `yaml:"RestartOnFailure"`
+	KeepAlive        bool     `yaml:"KeepAlive"`
+	RestartWait      int      `yaml:"RestartWait"`
+	WorkingDir       string   `yaml:"WorkingDir"`
+	DelayStart       int      `yaml:"DelayStart"`
 }
 
 func (p *Process) Run() {

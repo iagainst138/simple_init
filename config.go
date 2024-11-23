@@ -1,8 +1,9 @@
 package sinit
 
 import (
-	"encoding/json"
 	"os"
+
+	"github.com/goccy/go-yaml"
 )
 
 type Processes []*Process
@@ -15,7 +16,7 @@ func Load(path string) (Processes, error) {
 		return nil, err
 	}
 
-	if err = json.Unmarshal(data, &processes); err != nil {
+	if err = yaml.Unmarshal(data, &processes); err != nil {
 		return nil, err
 	}
 

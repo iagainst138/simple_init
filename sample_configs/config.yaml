@@ -1,0 +1,10 @@
+- CmdPath: "sleep"
+  Args: ["10"]
+
+- CmdPath: "echo"
+  Args: ["Hello,", "world!"]
+
+- CmdPath: "sleep"
+  Args: ["30"]
+  KeepAlive: true
+  RestartOnFailure: true
