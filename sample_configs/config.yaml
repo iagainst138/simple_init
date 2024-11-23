@@ -1,10 +1,10 @@
-- CmdPath: "sleep"
-  Args: ["10"]
+- cmd_path: "sleep"
+  args: ["10"]
 
-- CmdPath: "echo"
-  Args: ["Hello,", "world!"]
+- cmd_path: "echo"
+  args: ["Hello,", "world!"]
 
-- CmdPath: "sleep"
-  Args: ["30"]
-  KeepAlive: true
-  RestartOnFailure: true
+- cmd_path: "sleep"
+  args: ["30"]
+  keepalive: true
+  restart_on_failure: true

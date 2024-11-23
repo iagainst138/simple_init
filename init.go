@@ -9,13 +9,13 @@ import (
 )
 
 type Process struct {
-	CmdPath          string   `yaml:"CmdPath"`
-	Args             []string `yaml:"Args"`
-	RestartOnFailure bool     `yaml:"RestartOnFailure"`
-	KeepAlive        bool     `yaml:"KeepAlive"`
-	RestartWait      int      `yaml:"RestartWait"`
-	WorkingDir       string   `yaml:"WorkingDir"`
-	DelayStart       int      `yaml:"DelayStart"`
+	CmdPath          string   `yaml:"cmd_path"`
+	Args             []string `yaml:"args"`
+	RestartOnFailure bool     `yaml:"restart_on_failure"`
+	Keepalive        bool     `yaml:"keepalive"`
+	RestartWait      int      `yaml:"restart_wait"`
+	WorkingDir       string   `yaml:"working_dir"`
+	DelayStart       int      `yaml:"delay_start"`
 }
 
 func (p *Process) Run() {
@@ -63,7 +63,7 @@ func (p *Process) Run() {
 			log.Printf("process '%v' finished cleanly", p.CmdPath)
 		}
 
-		run = p.KeepAlive
+		run = p.Keepalive
 		if run {
 			time.Sleep(time.Duration(p.RestartWait) * time.Second)
 		}
