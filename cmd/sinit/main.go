@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
-	"sync"
 
 	"sinit"
 )
@@ -22,20 +21,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	processes, err := sinit.Load(configPath)
-	if err != nil {
-		slog.Error("failed to load config", "error", err)
+	if err := sinit.Run(configPath); err != nil {
+		slog.Error("failed", "error", err)
 		os.Exit(1)
 	}
-
-	wg := sync.WaitGroup{}
-	for _, pprocess := range processes {
-		wg.Add(1)
-		go func(p *sinit.Process) {
-			p.Run()
-			wg.Done()
-		}(pprocess)
-	}
-
-	wg.Wait()
 }
