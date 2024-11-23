@@ -22,7 +22,7 @@ func main() {
 	}
 
 	if err := sinit.Run(configPath); err != nil {
-		slog.Error("failed", "error", err)
+		slog.Error("sinit run failed", "error", err)
 		os.Exit(1)
 	}
 }
