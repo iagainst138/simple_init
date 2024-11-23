@@ -1,11 +1,21 @@
+pre:
+  - name: "failing ls"
+    cmd_path: "ls"
+    args:
+      - /kkkkk
+
+
 services:
-  - cmd_path: "sleep"
+  - name: "sleep 1"
+    cmd_path: "sleep"
     args: ["10"]
 
-  - cmd_path: "echo"
+  - name: "echo"
+    cmd_path: "echo"
     args: ["Hello,", "world!"]
 
-  - cmd_path: "sleep"
+  - name: "sleep 2"
+    cmd_path: "sleep"
     args: ["30"]
     keepalive: true
     restart_on_failure: true

@@ -2,6 +2,8 @@ package sinit
 
 import (
 	"bufio"
+	"bytes"
+	"fmt"
 	"log"
 	"os"
 	"os/exec"
@@ -9,6 +11,7 @@ import (
 )
 
 type Process struct {
+	Name             string   `yaml:"name"`
 	CmdPath          string   `yaml:"cmd_path"`
 	Args             []string `yaml:"args"`
 	RestartOnFailure bool     `yaml:"restart_on_failure"`
@@ -18,8 +21,25 @@ type Process struct {
 	DelayStart       int      `yaml:"delay_start"`
 }
 
-func (p *Process) Run() {
-	log.Printf("starting monitoring %v with args %v", p.CmdPath, p.Args)
+func (p Process) command() string {
+	return fmt.Sprintf("%s %v", p.CmdPath, p.Args)
+}
+
+func (p *Process) Run(logInRealtime bool) error {
+	var out bytes.Buffer
+	var ok bool
+
+	if !logInRealtime {
+		defer func() {
+			if !ok {
+				log.Printf("pre task %q failed:", p.Name)
+				fmt.Println(out.String())
+			}
+		}()
+	}
+
+	log.Printf("starting monitoring %q - %s", p.Name, p.command())
+
 	run := true
 	for run {
 		time.Sleep(time.Duration(p.DelayStart) * time.Second)
@@ -28,9 +48,9 @@ func (p *Process) Run() {
 			cmd.Dir = p.WorkingDir
 		}
 
-		r, w, e := os.Pipe()
-		if e != nil {
-			panic(e)
+		r, w, err := os.Pipe()
+		if err != nil {
+			return err
 		}
 
 		cmd.Stdout, cmd.Stderr = w, w
@@ -40,27 +60,30 @@ func (p *Process) Run() {
 		go func() {
 			s := bufio.NewScanner(r)
 			for s.Scan() {
-				log.Printf("[%v] %v", p.CmdPath, s.Text())
+				line := fmt.Sprintf("[%v] %v", p.CmdPath, s.Text())
+				if logInRealtime {
+					log.Println(line)
+				} else {
+					out.WriteString(line + "\n")
+				}
 			}
 		}()
 
-		err := cmd.Start()
-		log.Printf("started %v with args %v", p.CmdPath, p.Args)
-		if err != nil {
-			log.Printf("error '%v': %v", p.CmdPath, err)
-			break // TODO improve on error handling
+		log.Printf("starting %q - %s", p.Name, p.command())
+		if err = cmd.Start(); err != nil {
+			return fmt.Errorf("[%v]: %w", p.CmdPath, err)
 		}
 
 		err = cmd.Wait()
 		r.Close()
 		w.Close()
 		if err != nil {
-			log.Printf("process '%v' finished with error: %v", p.CmdPath, err)
+			log.Printf("process %q finished with error: %v", p.Name, err)
 			if !p.RestartOnFailure {
-				break // TODO improve
+				return err
 			}
 		} else {
-			log.Printf("process '%v' finished cleanly", p.CmdPath)
+			log.Printf("process %q finished cleanly", p.Name)
 		}
 
 		run = p.Keepalive
@@ -68,5 +91,9 @@ func (p *Process) Run() {
 			time.Sleep(time.Duration(p.RestartWait) * time.Second)
 		}
 	}
-	log.Printf("finished monitoring '%v'", p.CmdPath)
+	log.Printf("finished monitoring %q", p.Name)
+
+	ok = true
+
+	return nil
 }
