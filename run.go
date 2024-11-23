@@ -6,18 +6,15 @@ import (
 )
 
 func Run(configPath string) error {
-	processes, err := Load(configPath)
+	config, err := Load(configPath)
 	if err != nil {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
 
 	wg := sync.WaitGroup{}
-	for _, pprocess := range processes {
+	for _, process := range config.Services {
 		wg.Add(1)
-		go func(p *Process) {
-			p.Run()
-			wg.Done()
-		}(pprocess)
+		go func(p *Process) { p.Run(); wg.Done() }(process)
 	}
 
 	wg.Wait()
