@@ -22,6 +22,7 @@ type Task struct {
 	RestartWait      int      `yaml:"restart_wait"`
 	WorkingDir       string   `yaml:"working_dir"`
 	DelayStart       int      `yaml:"delay_start"`
+	Signal           string   `yaml:"signal"`
 }
 
 func (t Task) command() string {
@@ -60,10 +61,8 @@ func (t *Task) Run(ctx context.Context, logInRealtime bool) error {
 		}
 
 		cmd.Cancel = func() error {
-			// TODO send custom signal
-			log.Println("____ TODO ____ use custom signal")
 			if cmd.Process != nil {
-				return cmd.Process.Kill()
+				return cmd.Process.Signal(getSignal(t.Signal))
 			}
 			return nil
 		}
@@ -80,7 +79,7 @@ func (t *Task) Run(ctx context.Context, logInRealtime bool) error {
 		go func() {
 			s := bufio.NewScanner(r)
 			for s.Scan() {
-				line := fmt.Sprintf("[%v] %v", t.CmdPath, s.Text())
+				line := fmt.Sprintf("[%v] %v", t.Name, s.Text())
 				if logInRealtime {
 					log.Println(line)
 				} else {

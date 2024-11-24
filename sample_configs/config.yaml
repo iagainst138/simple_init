@@ -6,6 +6,10 @@ pre:
 
 
 services:
+  - name: "python"
+    cmd_path: "./scripts/signal-handler.py"
+    signal: "int"
+
   - name: "sleep 1"
     cmd_path: "sleep"
     args: ["10"]
