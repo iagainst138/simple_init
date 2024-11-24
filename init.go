@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -94,15 +95,22 @@ func (t *Task) Run(ctx context.Context, logInRealtime bool) error {
 		}
 
 		err = cmd.Wait()
+		exitCode := cmd.ProcessState.ExitCode()
 		r.Close()
 		w.Close()
-		if err != nil {
-			log.Printf("task %q finished with error: %v", t.Name, err)
+
+		if err == nil {
+			log.Printf("task %q finished cleanly", t.Name)
+		} else if errors.Is(err, context.Canceled) {
+			t.Keepalive = false
+			if exitCode != 0 {
+				return fmt.Errorf("task %s exited with %d", t.Name, exitCode)
+			}
+		} else {
+			log.Printf("task %q (returncode:%d) finished with error: %v", t.Name, exitCode, err)
 			if !t.RestartOnFailure {
 				return err
 			}
-		} else {
-			log.Printf("task %q finished cleanly", t.Name)
 		}
 
 		run = t.Keepalive

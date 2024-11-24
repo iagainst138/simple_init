@@ -8,6 +8,9 @@ pre:
 services:
   - name: "python"
     cmd_path: "./scripts/signal-handler.py"
+    args:
+      - --signal
+      - int
     signal: "int"
 
   - name: "sleep 1"
